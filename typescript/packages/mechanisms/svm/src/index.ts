@@ -6,8 +6,6 @@
 
 // Export V2 implementations (default)
 export { ExactSvmScheme } from "./exact";
-export { LightExactSvmScheme } from "./exact";
-export type { LightExactSvmSchemeConfig } from "./exact";
 
 // Export signer utilities and types
 export { toClientSvmSigner, toFacilitatorSvmSigner } from "./signer";

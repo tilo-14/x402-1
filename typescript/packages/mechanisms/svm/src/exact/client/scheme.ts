@@ -29,6 +29,7 @@ import {
 import type { ClientSvmConfig, ClientSvmSigner } from "../../signer";
 import type { ExactSvmPayloadV2 } from "../../types";
 import { createRpcClient } from "../../utils";
+import { buildLightTokenPayload } from "./light-token";
 
 /**
  * SVM client implementation for the Exact payment scheme.
@@ -59,6 +60,23 @@ export class ExactSvmScheme implements SchemeNetworkClient {
     x402Version: number,
     paymentRequirements: PaymentRequirements,
   ): Promise<Pick<PaymentPayload, "x402Version" | "payload">> {
+    // Use Light Token path when Photon-compatible RPC is configured.
+    // The SDK auto-wraps SPL/T22 balances into Light Token accounts.
+    if (this.config?.rpcUrl) {
+      const payload = await buildLightTokenPayload(
+        this.signer,
+        this.config.rpcUrl,
+        paymentRequirements,
+      );
+      if (!payload) {
+        throw new Error(
+          "Insufficient balance for this payment. " +
+            "The aggregated balance across Light Token, SPL, and Token-2022 accounts is too low.",
+        );
+      }
+      return { x402Version, payload };
+    }
+
     const rpc = createRpcClient(paymentRequirements.network, this.config?.rpcUrl);
 
     const tokenMint = await fetchMint(rpc, paymentRequirements.asset as Address);
