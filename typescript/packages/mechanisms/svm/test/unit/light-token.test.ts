@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  convertV1InstructionToV2,
   parseLightTokenTransferInstruction,
   deriveLightTokenATA,
   getRpcUrl,
@@ -17,52 +16,6 @@ import {
 } from "../../src/constants";
 
 describe("Light Token Utilities", () => {
-  describe("convertV1InstructionToV2", () => {
-    it("should convert a v1 instruction to v2 format", () => {
-      const v1Ix = {
-        programId: { toBase58: () => "Program11111111111111111111111111" },
-        keys: [
-          {
-            pubkey: { toBase58: () => "Account1111111111111111111111111" },
-            isSigner: false,
-            isWritable: true,
-          },
-          {
-            pubkey: { toBase58: () => "Account2222222222222222222222222" },
-            isSigner: true,
-            isWritable: false,
-          },
-          {
-            pubkey: { toBase58: () => "Account3333333333333333333333333" },
-            isSigner: true,
-            isWritable: true,
-          },
-        ],
-        data: new Uint8Array([1, 2, 3]),
-      };
-
-      const v2Ix = convertV1InstructionToV2(v1Ix);
-
-      expect(v2Ix.programAddress).toBe("Program11111111111111111111111111");
-      expect(v2Ix.accounts).toHaveLength(3);
-      expect(v2Ix.accounts[0].role).toBe(1); // WRITABLE
-      expect(v2Ix.accounts[1].role).toBe(2); // READONLY_SIGNER
-      expect(v2Ix.accounts[2].role).toBe(3); // WRITABLE_SIGNER
-      expect(v2Ix.data).toEqual(new Uint8Array([1, 2, 3]));
-    });
-
-    it("should handle empty keys", () => {
-      const v1Ix = {
-        programId: { toBase58: () => "Program11111111111111111111111111" },
-        keys: [],
-        data: new Uint8Array([]),
-      };
-
-      const v2Ix = convertV1InstructionToV2(v1Ix);
-      expect(v2Ix.accounts).toHaveLength(0);
-    });
-  });
-
   describe("parseLightTokenTransferInstruction", () => {
     it("should parse a valid disc 12 instruction", () => {
       // disc(1) + amount(u64 LE, 8) + decimals(u8, 1) = 10 bytes

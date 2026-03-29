@@ -42,7 +42,7 @@ No changes needed. The resource server does not interact with the token transfer
 | Instruction count | 3-6 (fixed) | 3-10 (variable) |
 | Pre-transactions | Not supported | Supported (account loading) |
 | Compute budget order | `[Limit, Price]` | Either order accepted |
-| SDK | `@solana-program/token-2022` | `@lightprotocol/compressed-token` |
+| SDK | `@solana-program/token-2022` | `@lightprotocol/token-interface` |
 
 ## Testing on Localnet
 

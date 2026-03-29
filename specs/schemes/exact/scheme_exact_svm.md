@@ -158,7 +158,7 @@ When the facilitator detects instructions targeting the Light Token program (`cT
 1. **Instruction count**: 3 to 10 instructions (Light Token transactions may include setup instructions with discriminator 101).
 2. **Compute budget order**: Either `[SetComputeUnitLimit, SetComputeUnitPrice]` or `[SetComputeUnitPrice, SetComputeUnitLimit]` is accepted.
 3. **Transfer instruction**: Found by scanning from index 2+ for a Light Token instruction with discriminator 12 (TransferChecked). Instructions with discriminator 101 (Transfer2/setup) are skipped.
-4. **Fee payer**: The fee payer MAY appear at account position 5 (payer) in the Light Token transfer instruction, as it sponsors rent for compressed accounts.
+4. **Fee payer**: The fee payer MAY appear at account position 5 (payer) in the Light Token transfer instruction, as it sponsors rent-exemption for the Solana account.
 5. **Allowed programs**: Light Token Program, Compute Budget, Memo, and Lighthouse.
 6. **Pre-transactions**: When `preTransactions` is present, each pre-transaction MUST contain only instructions from the Light Token Program, Compute Budget, or Memo programs. Pre-transactions with 1 to 15 instructions are accepted. `preTransactions` MUST be rejected for non-Light-Token transfers.
 7. **Settlement**: Pre-transactions are signed and submitted sequentially, each confirmed before the next. The main transaction is then signed and submitted normally.

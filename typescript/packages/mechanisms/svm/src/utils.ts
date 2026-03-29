@@ -211,54 +211,6 @@ export function convertToTokenAmount(decimalAmount: string, decimals: number): s
 // ---------------------------------------------------------------------------
 
 /**
- * Account role constants matching @solana/kit's AccountRole enum.
- */
-const ACCOUNT_ROLE_READONLY = 0;
-const ACCOUNT_ROLE_WRITABLE = 1;
-const ACCOUNT_ROLE_READONLY_SIGNER = 2;
-const ACCOUNT_ROLE_WRITABLE_SIGNER = 3;
-
-/**
- * Convert a @solana/web3.js v1 TransactionInstruction to a @solana/kit v2 IInstruction shape.
- * Used to bridge the Light Protocol SDK (v1 types) into x402's v2 transaction pipeline.
- *
- * @param ix - A web3.js v1 TransactionInstruction
- * @param ix.programId - The program ID with a toBase58() method
- * @param ix.programId.toBase58 - Returns the base58 encoded program address
- * @param ix.keys - The instruction account metas
- * @param ix.data - The instruction data as Buffer or Uint8Array
- * @returns An object matching @solana/kit's IInstruction shape
- */
-export function convertV1InstructionToV2(ix: {
-  programId: { toBase58(): string };
-  keys: ReadonlyArray<{
-    pubkey: { toBase58(): string };
-    isSigner: boolean;
-    isWritable: boolean;
-  }>;
-  data: Buffer | Uint8Array;
-}): {
-  programAddress: Address;
-  accounts: Array<{ address: Address; role: number }>;
-  data: Uint8Array;
-} {
-  return {
-    programAddress: ix.programId.toBase58() as Address,
-    accounts: ix.keys.map(k => ({
-      address: k.pubkey.toBase58() as Address,
-      role: k.isSigner
-        ? k.isWritable
-          ? ACCOUNT_ROLE_WRITABLE_SIGNER
-          : ACCOUNT_ROLE_READONLY_SIGNER
-        : k.isWritable
-          ? ACCOUNT_ROLE_WRITABLE
-          : ACCOUNT_ROLE_READONLY,
-    })),
-    data: ix.data instanceof Uint8Array ? ix.data : new Uint8Array(ix.data),
-  };
-}
-
-/**
  * Parsed Light Token transfer instruction data
  */
 export interface ParsedLightTokenTransfer {
