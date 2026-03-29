@@ -49,9 +49,10 @@ export function containsLightTokenInstruction(
  * @param preTransactions - Base64 encoded pre-transactions
  * @returns Validation result
  */
-export function validatePreTransactions(
-  preTransactions: string[],
-): { valid: boolean; reason?: string } {
+export function validatePreTransactions(preTransactions: string[]): {
+  valid: boolean;
+  reason?: string;
+} {
   const allowedPrograms = new Set([
     LIGHT_TOKEN_PROGRAM_ADDRESS,
     COMPUTE_BUDGET_PROGRAM_ADDRESS.toString(),

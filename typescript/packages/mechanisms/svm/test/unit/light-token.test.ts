@@ -173,10 +173,7 @@ describe("Light Token Utilities", () => {
     it("should produce different addresses for different owners", async () => {
       const mint = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
       // Use real 32-byte base58 addresses
-      const address1 = await deriveLightTokenATA(
-        "11111111111111111111111111111112",
-        mint,
-      );
+      const address1 = await deriveLightTokenATA("11111111111111111111111111111112", mint);
       const address2 = await deriveLightTokenATA(
         "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
         mint,

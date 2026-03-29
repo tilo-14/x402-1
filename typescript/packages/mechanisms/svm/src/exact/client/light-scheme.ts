@@ -11,11 +11,18 @@ export type LightExactSvmSchemeConfig = {
 export class LightExactSvmScheme implements SchemeNetworkClient {
   readonly scheme = "exact";
 
+  /**
+   * Create a new LightExactSvmScheme instance.
+   *
+   * @param signer - The client wallet signer
+   * @param config - Light Token scheme configuration
+   */
   constructor(
     private readonly signer: ClientSvmSigner,
     private readonly config: LightExactSvmSchemeConfig,
   ) {}
 
+  /** @inheritdoc */
   async createPaymentPayload(
     x402Version: number,
     paymentRequirements: PaymentRequirements,

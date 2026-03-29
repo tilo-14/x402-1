@@ -102,7 +102,11 @@ export async function buildLightTokenPayload(
   const transferBatch = v2Batches[v2Batches.length - 1];
   const preBatches = v2Batches.slice(0, -1);
 
-  const rpc = lightRpc as unknown as { getLatestBlockhash(): { send(): Promise<{ value: { blockhash: string; lastValidBlockHeight: bigint } }> } };
+  const rpc = lightRpc as unknown as {
+    getLatestBlockhash(): {
+      send(): Promise<{ value: { blockhash: string; lastValidBlockHeight: bigint } }>;
+    };
+  };
   const { value: latestBlockhash } = await rpc.getLatestBlockhash().send();
 
   // Build pre-transactions (load instructions)
