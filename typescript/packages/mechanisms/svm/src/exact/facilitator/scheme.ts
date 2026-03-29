@@ -33,6 +33,11 @@ import { SettlementCache } from "../../settlement-cache";
 import type { FacilitatorSvmSigner } from "../../signer";
 import type { ExactSvmPayloadV2 } from "../../types";
 import { decodeTransactionFromPayload, getTokenPayerFromTransaction } from "../../utils";
+import {
+  containsLightTokenInstruction,
+  validateLightTokenTransaction,
+  settleLightTokenTransaction,
+} from "./light-token";
 
 /**
  * SVM facilitator implementation for the Exact payment scheme.
@@ -149,6 +154,18 @@ export class ExactSvmScheme implements SchemeNetworkFacilitator {
     const compiled = getCompiledTransactionMessageDecoder().decode(transaction.messageBytes);
     const decompiled = decompileTransactionMessage(compiled);
     const instructions = decompiled.instructions ?? [];
+
+    // Light Token: delegate to specialized validation
+    if (containsLightTokenInstruction(instructions as never)) {
+      const signerAddresses = this.signer.getAddresses().map(addr => addr.toString());
+      return validateLightTokenTransaction(
+        instructions as never,
+        exactSvmPayload,
+        requirements,
+        this.signer,
+        signerAddresses,
+      );
+    }
 
     // Allow 3-6 instructions:
     // - 3 instructions: ComputeLimit + ComputePrice + TransferChecked
@@ -368,6 +385,27 @@ export class ExactSvmScheme implements SchemeNetworkFacilitator {
         errorReason: "duplicate_settlement",
         payer: valid.payer || "",
       };
+    }
+
+    // Light Token: delegate to specialized settle flow
+    // Detection mirrors verify() — decode transaction and check for Light Token instructions
+    try {
+      const settleTransaction = decodeTransactionFromPayload(exactSvmPayload);
+      const settleCompiled = getCompiledTransactionMessageDecoder().decode(
+        settleTransaction.messageBytes,
+      );
+      const settleDecompiled = decompileTransactionMessage(settleCompiled);
+      if (containsLightTokenInstruction(settleDecompiled.instructions as never)) {
+        return settleLightTokenTransaction(
+          exactSvmPayload,
+          requirements,
+          this.signer,
+          valid.payer || "",
+          payload.accepted.network as `${string}:${string}`,
+        );
+      }
+    } catch {
+      // Decode failed — proceed with SPL settle (verify already validated the transaction)
     }
 
     try {
