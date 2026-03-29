@@ -5,40 +5,36 @@ import {
   getAtaInterface,
 } from "@lightprotocol/compressed-token/unified";
 import { createRpc } from "@lightprotocol/stateless.js";
+import { setTransactionMessageComputeUnitPrice } from "@solana-program/compute-budget";
 import {
   appendTransactionMessageInstructions,
   createTransactionMessage,
   getBase64EncodedWireTransaction,
   partiallySignTransactionMessageWithSigners,
   pipe,
-  setTransactionMessageComputeUnitPrice,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
   type Address,
 } from "@solana/kit";
 import type { PaymentRequirements } from "@x402/core/types";
-import {
-  DEFAULT_COMPUTE_UNIT_PRICE_MICROLAMPORTS,
-  MEMO_PROGRAM_ADDRESS,
-} from "../../constants";
+import { DEFAULT_COMPUTE_UNIT_PRICE_MICROLAMPORTS, MEMO_PROGRAM_ADDRESS } from "../../constants";
 import type { ClientSvmSigner } from "../../signer";
 import type { ExactSvmPayloadV2 } from "../../types";
-import { convertV1InstructionToV2, getRpcUrl } from "../../utils";
+import { convertV1InstructionToV2 } from "../../utils";
 
-/**
- * Account role constants for signer injection
- */
+/** Account role: read-only signer */
 const ACCOUNT_ROLE_READONLY_SIGNER = 2;
+/** Account role: writable signer */
 const ACCOUNT_ROLE_WRITABLE_SIGNER = 3;
 
 /**
  * Build a Light Token payment payload.
- * Returns null if the source has no compressed token balance for the given mint.
+ * Returns null if the source has no Light Token balance for the given mint.
  *
- * @param signer - The client signer
- * @param rpcUrl - Photon-compatible RPC URL
- * @param paymentRequirements - The payment requirements
- * @returns Light Token payment payload, or null if no compressed balance
+ * @param signer - The client wallet signer
+ * @param rpcUrl - RPC endpoint URL (used for Light Protocol RPC)
+ * @param paymentRequirements - Payment requirements from the resource server
+ * @returns The payment payload, or null if insufficient Light Token balance
  */
 export async function buildLightTokenPayload(
   signer: ClientSvmSigner,
@@ -50,7 +46,7 @@ export async function buildLightTokenPayload(
   const sender = new PublicKey(signer.address as string);
   const destination = new PublicKey(paymentRequirements.payTo);
 
-  // Check compressed balance via unified interface
+  // Check Light Token balance via unified interface
   const senderAta = getAssociatedTokenAddressInterface(mint, sender);
   const account = await getAtaInterface(lightRpc, senderAta, sender, mint);
   const balance = BigInt(account.parsed.amount.toString());

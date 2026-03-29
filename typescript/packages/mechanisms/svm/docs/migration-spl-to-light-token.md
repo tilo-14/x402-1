@@ -1,6 +1,6 @@
 # Light Token Support
 
-Light Token support in `@x402/svm` is purely additive. Existing SPL Token and Token-2022 flows continue to work unchanged. A new `LightExactSvmScheme` client class handles compressed token payments alongside the existing `ExactSvmScheme`.
+Light Token support in `@x402/svm` is purely additive. Existing SPL Token and Token-2022 flows continue to work unchanged. A new `LightExactSvmScheme` client class handles Light Token payments alongside the existing `ExactSvmScheme`.
 
 ## Client Usage
 
@@ -24,17 +24,17 @@ const client = new LightExactSvmScheme(signer, {
 x402Client.register("solana:*", client);
 ```
 
-The `rpcUrl` must point to a Photon-compatible RPC (Helius, Triton, etc.) that supports both standard Solana RPC and compressed token queries.
+The `rpcUrl` must point to a Photon-compatible RPC (Helius, Triton, etc.) that supports both standard Solana RPC and Light Token queries.
 
 ## Prerequisites
 
-Before making Light Token payments, you need compressed tokens in your account:
+Before making Light Token payments, you need Light Token balances in your account:
 
 1. Register the SPL mint with the Light Token Program (one-time per mint)
 2. Create a Light Token ATA for your address
-3. Wrap SPL tokens into compressed tokens
+3. Wrap SPL tokens into Light Token accounts
 
-See [Light Protocol documentation](https://docs.lightprotocol.com) for setup details.
+See [Light Token documentation](https://www.zkcompression.com/light-token/welcome) for setup details.
 
 ## Facilitator
 

@@ -2,7 +2,7 @@
 
 This document specifies the `exact` payment scheme for the x402 protocol on Solana.
 
-This scheme facilitates payments of a specific amount of an SPL token on the Solana blockchain. It supports SPL Token, Token-2022, and Light Token (compressed token) programs.
+This scheme facilitates payments of a specific amount of an SPL token on the Solana blockchain. It supports SPL Token, Token-2022, and Light Token programs.
 
 ## Scheme Name
 

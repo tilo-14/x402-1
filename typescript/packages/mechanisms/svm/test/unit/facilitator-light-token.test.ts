@@ -3,10 +3,7 @@ import {
   containsLightTokenInstruction,
   validatePreTransactions,
 } from "../../src/exact/facilitator/light-token";
-import {
-  LIGHT_TOKEN_PROGRAM_ADDRESS,
-  MEMO_PROGRAM_ADDRESS,
-} from "../../src/constants";
+import { LIGHT_TOKEN_PROGRAM_ADDRESS } from "../../src/constants";
 import { COMPUTE_BUDGET_PROGRAM_ADDRESS } from "@solana-program/compute-budget";
 import { TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
 

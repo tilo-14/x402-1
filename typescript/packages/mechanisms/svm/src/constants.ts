@@ -19,7 +19,7 @@ export const LIGHTHOUSE_PROGRAM_ADDRESS = "L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1
 
 /**
  * Light Token program address
- * Compressed token accounts cost ~200x less rent than SPL/Token-2022.
+ * Light Token accounts cost ~200x less rent than SPL/Token-2022.
  */
 export const LIGHT_TOKEN_PROGRAM_ADDRESS = "cTokenmWW8bLPjZEBAUgYy3zKxQZW6VKi7bqNFEVv3m";
 

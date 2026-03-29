@@ -223,6 +223,10 @@ const ACCOUNT_ROLE_WRITABLE_SIGNER = 3;
  * Used to bridge the Light Protocol SDK (v1 types) into x402's v2 transaction pipeline.
  *
  * @param ix - A web3.js v1 TransactionInstruction
+ * @param ix.programId - The program ID with a toBase58() method
+ * @param ix.programId.toBase58 - Returns the base58 encoded program address
+ * @param ix.keys - The instruction account metas
+ * @param ix.data - The instruction data as Buffer or Uint8Array
  * @returns An object matching @solana/kit's IInstruction shape
  */
 export function convertV1InstructionToV2(ix: {
@@ -274,6 +278,10 @@ export interface ParsedLightTokenTransfer {
  * Account order: [source, mint, dest, authority, system?, payer?]
  *
  * @param instruction - The decompiled instruction
+ * @param instruction.programAddress - The program address with a toString() method
+ * @param instruction.programAddress.toString - Returns the string representation of the address
+ * @param instruction.data - The raw instruction data bytes
+ * @param instruction.accounts - The instruction account list
  * @returns Parsed transfer data
  */
 export function parseLightTokenTransferInstruction(instruction: {
