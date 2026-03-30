@@ -18,6 +18,18 @@ export const MEMO_PROGRAM_ADDRESS = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr
 export const LIGHTHOUSE_PROGRAM_ADDRESS = "L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95";
 
 /**
+ * Light Token program address
+ * Light Token accounts cost ~200x less rent than SPL/Token-2022.
+ */
+export const LIGHT_TOKEN_PROGRAM_ADDRESS = "cTokenmWW8bLPjZEBAUgYy3zKxQZW6VKi7bqNFEVv3m";
+
+/**
+ * Light Token instruction discriminators
+ */
+export const LIGHT_TOKEN_DISC_TRANSFER_CHECKED = 12;
+export const LIGHT_TOKEN_DISC_TRANSFER2 = 101;
+
+/**
  * Default RPC URLs for Solana networks
  */
 export const DEVNET_RPC_URL = "https://api.devnet.solana.com";

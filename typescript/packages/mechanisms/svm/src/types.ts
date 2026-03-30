@@ -9,6 +9,6 @@ export type ExactSvmPayloadV1 = {
 };
 
 /**
- * Exact SVM payload V2 structure (currently same as V1, reserved for future extensions)
+ * Exact SVM payload V2 structure.
  */
 export type ExactSvmPayloadV2 = ExactSvmPayloadV1;

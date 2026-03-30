@@ -32,23 +32,21 @@ describe("SVM Types", () => {
   });
 
   describe("ExactSvmPayloadV2", () => {
-    it("should have the same structure as V1", () => {
+    it("should accept valid payload structure", () => {
       const payload: ExactSvmPayloadV2 = {
         transaction: "base64encodedtransaction==",
       };
 
-      // V2 should be compatible with V1
-      const payloadV1: ExactSvmPayloadV1 = payload;
-      expect(payloadV1).toEqual(payload);
+      expect(payload.transaction).toBeDefined();
     });
 
-    it("should be assignable from V1", () => {
+    it("should be assignable from V1 (backwards-compatible)", () => {
       const payloadV1: ExactSvmPayloadV1 = {
         transaction: "test==",
       };
 
       const payloadV2: ExactSvmPayloadV2 = payloadV1;
-      expect(payloadV2).toEqual(payloadV1);
+      expect(payloadV2.transaction).toBe("test==");
     });
   });
 });

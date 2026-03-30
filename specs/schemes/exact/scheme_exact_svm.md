@@ -2,7 +2,7 @@
 
 This document specifies the `exact` payment scheme for the x402 protocol on Solana.
 
-This scheme facilitates payments of a specific amount of an SPL token on the Solana blockchain.
+This scheme facilitates payments of a specific amount of an SPL token on the Solana blockchain. It supports SPL Token, Token-2022, and Light Token programs.
 
 ## Scheme Name
 
@@ -60,7 +60,7 @@ The `payload` field of the `PaymentPayload` contains:
 }
 ```
 
-The `transaction` field contains the base64-encoded, serialized, **partially-signed** versioned Solana transaction.
+- `transaction`: The base64-encoded, serialized, **partially-signed** versioned Solana transaction.
 
 Full `PaymentPayload` object:
 
@@ -148,6 +148,17 @@ A facilitator verifying an `exact`-scheme SVM payment MUST enforce all of the fo
 - The `amount` in TransferChecked MUST equal `PaymentRequirements.amount` exactly.
 
 These checks are security-critical to ensure the fee payer cannot be tricked into transferring their own funds or sponsoring unintended actions. Implementations MAY introduce stricter limits (e.g., lower compute price caps) but MUST NOT relax the above constraints.
+
+### Light Token Addendum
+
+When the facilitator detects instructions targeting the Light Token program (`cTokenmWW8bLPjZEBAUgYy3zKxQZW6VKi7bqNFEVv3m`), the following modified rules apply:
+
+1. **Instruction count**: 3 to 10 instructions (Light Token transactions may include setup instructions with discriminator 101).
+2. **Compute budget order**: Either `[SetComputeUnitLimit, SetComputeUnitPrice]` or `[SetComputeUnitPrice, SetComputeUnitLimit]` is accepted.
+3. **Transfer instruction**: Found by scanning from index 2+ for a Light Token instruction with discriminator 12 (TransferChecked). Instructions with discriminator 101 (Transfer2/setup) are skipped.
+4. **Fee payer**: The fee payer MAY appear at account position 5 (payer) in the Light Token transfer instruction, as it sponsors rent-exemption for the Solana account.
+5. **Allowed programs**: Light Token Program, Compute Budget, Memo, and Lighthouse.
+6. **Settlement**: The main transaction is signed and submitted normally.
 
 ## Duplicate Settlement Mitigation (RECOMMENDED)
 

@@ -7,6 +7,9 @@ import {
   devnet,
   testnet,
   mainnet,
+  getProgramDerivedAddress,
+  getAddressEncoder,
+  type Address,
   type RpcDevnet,
   type SolanaRpcApiDevnet,
   type RpcTestnet,
@@ -29,6 +32,8 @@ import {
   SOLANA_DEVNET_CAIP2,
   SOLANA_TESTNET_CAIP2,
   V1_TO_V2_NETWORK_MAP,
+  LIGHT_TOKEN_PROGRAM_ADDRESS,
+  LIGHT_TOKEN_DISC_TRANSFER_CHECKED,
 } from "./constants";
 import type { ExactSvmPayloadV1 } from "./types";
 
@@ -113,6 +118,15 @@ export function getTokenPayerFromTransaction(transaction: Transaction): string {
         if (ownerAddress) return ownerAddress;
       }
     }
+
+    // Light Token: disc 12 (TransferChecked) has same account layout
+    if (programAddress === LIGHT_TOKEN_PROGRAM_ADDRESS) {
+      const accountIndices: number[] = ix.accountIndices ?? [];
+      const disc = ix.data?.[0];
+      if (disc === LIGHT_TOKEN_DISC_TRANSFER_CHECKED && accountIndices.length >= 4) {
+        return staticAccounts[accountIndices[3]].toString();
+      }
+    }
   }
 
   return "";
@@ -190,4 +204,117 @@ export function convertToTokenAmount(decimalAmount: string, decimals: number): s
   const paddedDec = decPart.padEnd(decimals, "0").slice(0, decimals);
   const tokenAmount = (intPart + paddedDec).replace(/^0+/, "") || "0";
   return tokenAmount;
+}
+
+// ---------------------------------------------------------------------------
+// Light Token utilities
+// ---------------------------------------------------------------------------
+
+/**
+ * Parsed Light Token transfer instruction data
+ */
+export interface ParsedLightTokenTransfer {
+  discriminator: number;
+  amount: bigint;
+  decimals: number;
+  source: string;
+  mint: string | null;
+  destination: string;
+  authority: string;
+  payer?: string;
+}
+
+/**
+ * Parse a Light Token TransferChecked (disc 12) instruction.
+ * Wire format: [disc(1), amount(u64 LE, 8), decimals(u8, 1)] = 10 bytes minimum.
+ * Account order: [source, mint, dest, authority, system?, payer?]
+ *
+ * @param instruction - The decompiled instruction
+ * @param instruction.programAddress - The program address with a toString() method
+ * @param instruction.programAddress.toString - Returns the string representation of the address
+ * @param instruction.data - The raw instruction data bytes
+ * @param instruction.accounts - The instruction account list
+ * @returns Parsed transfer data
+ */
+export function parseLightTokenTransferInstruction(instruction: {
+  programAddress: { toString(): string };
+  data?: Readonly<Uint8Array>;
+  accounts?: ReadonlyArray<{ address: { toString(): string } }>;
+}): ParsedLightTokenTransfer {
+  if (!instruction.data || instruction.data.length < 10) {
+    throw new Error("invalid_light_token_instruction_data");
+  }
+
+  const disc = instruction.data[0];
+  if (disc !== LIGHT_TOKEN_DISC_TRANSFER_CHECKED) {
+    throw new Error("invalid_light_token_discriminator");
+  }
+
+  const dataView = new DataView(
+    instruction.data.buffer,
+    instruction.data.byteOffset,
+    instruction.data.byteLength,
+  );
+  const amount = dataView.getBigUint64(1, true);
+  const decimals = instruction.data[9];
+  const accounts = instruction.accounts ?? [];
+
+  if (accounts.length < 4) {
+    throw new Error("invalid_light_token_instruction_accounts");
+  }
+
+  return {
+    discriminator: disc,
+    amount,
+    decimals,
+    source: accounts[0].address.toString(),
+    mint: accounts[1].address.toString(),
+    destination: accounts[2].address.toString(),
+    authority: accounts[3].address.toString(),
+    payer: accounts.length > 5 ? accounts[5].address.toString() : undefined,
+  };
+}
+
+/**
+ * Derive the Light Token ATA PDA for a given owner and mint.
+ * Seeds: [owner, LIGHT_TOKEN_PROGRAM_ID, mint]
+ *
+ * @param owner - The owner address
+ * @param mint - The mint address
+ * @returns The derived ATA address
+ */
+export async function deriveLightTokenATA(owner: string, mint: string): Promise<Address> {
+  const addressEncoder = getAddressEncoder();
+  const [address] = await getProgramDerivedAddress({
+    programAddress: LIGHT_TOKEN_PROGRAM_ADDRESS as Address,
+    seeds: [
+      addressEncoder.encode(owner as Address),
+      addressEncoder.encode(LIGHT_TOKEN_PROGRAM_ADDRESS as Address),
+      addressEncoder.encode(mint as Address),
+    ],
+  });
+  return address;
+}
+
+/**
+ * Resolve the RPC URL for a given network.
+ * Used to construct Light Protocol RPC clients that need a raw URL string.
+ *
+ * @param network - Network identifier (CAIP-2 or V1 format)
+ * @param customRpcUrl - Optional custom RPC URL override
+ * @returns The resolved RPC endpoint URL
+ */
+export function getRpcUrl(network: Network, customRpcUrl?: string): string {
+  if (customRpcUrl) return customRpcUrl;
+  const caip2Network = normalizeNetwork(network);
+  switch (caip2Network) {
+    case SOLANA_DEVNET_CAIP2:
+      return DEVNET_RPC_URL;
+    case SOLANA_TESTNET_CAIP2:
+      return TESTNET_RPC_URL;
+    case SOLANA_MAINNET_CAIP2:
+      return MAINNET_RPC_URL;
+    default:
+      throw new Error(`Unsupported network: ${network}`);
+  }
 }

@@ -15,6 +15,11 @@ export interface SvmClientConfig {
   signer: ClientSvmSigner;
 
   /**
+   * Photon-compatible RPC URL. Enables Light Token support when provided.
+   */
+  rpcUrl?: string;
+
+  /**
    * Optional payment requirements selector function
    */
   paymentRequirementsSelector?: SelectPaymentRequirements;
@@ -41,10 +46,10 @@ export function registerExactSvmScheme(client: x402Client, config: SvmClientConf
   // Register V2 scheme
   if (config.networks && config.networks.length > 0) {
     config.networks.forEach(network => {
-      client.register(network, new ExactSvmScheme(config.signer));
+      client.register(network, new ExactSvmScheme(config.signer, { rpcUrl: config.rpcUrl }));
     });
   } else {
-    client.register("solana:*", new ExactSvmScheme(config.signer));
+    client.register("solana:*", new ExactSvmScheme(config.signer, { rpcUrl: config.rpcUrl }));
   }
 
   // Register all V1 networks
