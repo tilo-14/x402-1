@@ -56,13 +56,11 @@ The `payload` field of the `PaymentPayload` contains:
 
 ```json
 {
-  "transaction": "AAAAAAAAAAAAA...AAAAAAAAAAAAA=",
-  "preTransactions": ["BBBBBBBBBBBBB...BBBBBBBBBBB="]
+  "transaction": "AAAAAAAAAAAAA...AAAAAAAAAAAAA="
 }
 ```
 
 - `transaction`: The base64-encoded, serialized, **partially-signed** versioned Solana transaction.
-- `preTransactions` (optional): An array of base64-encoded, partially-signed transactions that MUST be executed before the main transaction. Used for Light Token compressed account loading. Each entry is signed and submitted sequentially by the facilitator.
 
 Full `PaymentPayload` object:
 
@@ -160,8 +158,7 @@ When the facilitator detects instructions targeting the Light Token program (`cT
 3. **Transfer instruction**: Found by scanning from index 2+ for a Light Token instruction with discriminator 12 (TransferChecked). Instructions with discriminator 101 (Transfer2/setup) are skipped.
 4. **Fee payer**: The fee payer MAY appear at account position 5 (payer) in the Light Token transfer instruction, as it sponsors rent-exemption for the Solana account.
 5. **Allowed programs**: Light Token Program, Compute Budget, Memo, and Lighthouse.
-6. **Pre-transactions**: When `preTransactions` is present, each pre-transaction MUST contain only instructions from the Light Token Program, Compute Budget, or Memo programs. Pre-transactions with 1 to 15 instructions are accepted. `preTransactions` MUST be rejected for non-Light-Token transfers.
-7. **Settlement**: Pre-transactions are signed and submitted sequentially, each confirmed before the next. The main transaction is then signed and submitted normally.
+6. **Settlement**: The main transaction is signed and submitted normally.
 
 ## Duplicate Settlement Mitigation (RECOMMENDED)
 

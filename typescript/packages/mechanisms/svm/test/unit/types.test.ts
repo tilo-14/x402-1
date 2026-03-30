@@ -32,31 +32,12 @@ describe("SVM Types", () => {
   });
 
   describe("ExactSvmPayloadV2", () => {
-    it("should accept payload without preTransactions (backwards-compatible)", () => {
+    it("should accept valid payload structure", () => {
       const payload: ExactSvmPayloadV2 = {
         transaction: "base64encodedtransaction==",
       };
 
       expect(payload.transaction).toBeDefined();
-      expect(payload.preTransactions).toBeUndefined();
-    });
-
-    it("should accept payload with preTransactions", () => {
-      const payload: ExactSvmPayloadV2 = {
-        transaction: "base64encodedtransaction==",
-        preTransactions: ["pretx1==", "pretx2=="],
-      };
-
-      expect(payload.preTransactions).toHaveLength(2);
-    });
-
-    it("should accept empty preTransactions array", () => {
-      const payload: ExactSvmPayloadV2 = {
-        transaction: "base64encodedtransaction==",
-        preTransactions: [],
-      };
-
-      expect(payload.preTransactions).toHaveLength(0);
     });
 
     it("should be assignable from V1 (backwards-compatible)", () => {

@@ -40,7 +40,7 @@ No changes needed. The resource server does not interact with the token transfer
 |---|---|---|
 | Client class | `ExactSvmScheme` | `ExactSvmScheme` (with `rpcUrl`) |
 | Instruction count | 3-6 (fixed) | 3-10 (variable) |
-| Pre-transactions | Not supported | Supported (account loading) |
+| Account loading | Manual | Automatic (SDK handles inline) |
 | Compute budget order | `[Limit, Price]` | Either order accepted |
 | SDK | `@solana-program/token-2022` | `@lightprotocol/token-interface` |
 
@@ -61,5 +61,5 @@ pnpm test:integration
 None. Light Token support is purely additive:
 
 - `ExactSvmScheme` (client and facilitator) is unchanged when no `rpcUrl` is provided
-- `ExactSvmPayloadV2` gained an optional `preTransactions` field
+- `ExactSvmPayloadV2` is unchanged
 - V1 schemes are untouched

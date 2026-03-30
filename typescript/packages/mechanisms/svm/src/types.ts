@@ -10,13 +10,5 @@ export type ExactSvmPayloadV1 = {
 
 /**
  * Exact SVM payload V2 structure.
- * Extends V1 with optional preTransactions for Light Token compressed account setup.
  */
-export type ExactSvmPayloadV2 = ExactSvmPayloadV1 & {
-  /**
-   * Optional pre-transactions that must be executed before the main payment transaction.
-   * Used for Light Token load instructions when accounts are in compressed (cold) state.
-   * Each entry is a base64 encoded, partially-signed Solana transaction.
-   */
-  preTransactions?: string[];
-};
+export type ExactSvmPayloadV2 = ExactSvmPayloadV1;

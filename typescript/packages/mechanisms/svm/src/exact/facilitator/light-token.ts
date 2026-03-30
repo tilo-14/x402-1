@@ -3,11 +3,7 @@ import {
   parseSetComputeUnitLimitInstruction,
   parseSetComputeUnitPriceInstruction,
 } from "@solana-program/compute-budget";
-import {
-  decompileTransactionMessage,
-  getCompiledTransactionMessageDecoder,
-  type Address,
-} from "@solana/kit";
+import { type Address } from "@solana/kit";
 import type {
   Network,
   PaymentRequirements,
@@ -44,62 +40,11 @@ export function containsLightTokenInstruction(
 }
 
 /**
- * Validate pre-transactions: only allowlisted programs, reasonable instruction count.
- *
- * @param preTransactions - Base64 encoded pre-transactions
- * @returns Validation result
- */
-export function validatePreTransactions(preTransactions: string[]): {
-  valid: boolean;
-  reason?: string;
-} {
-  const allowedPrograms = new Set([
-    LIGHT_TOKEN_PROGRAM_ADDRESS,
-    COMPUTE_BUDGET_PROGRAM_ADDRESS.toString(),
-    MEMO_PROGRAM_ADDRESS,
-  ]);
-
-  for (let i = 0; i < preTransactions.length; i++) {
-    let preTx;
-    try {
-      preTx = decodeTransactionFromPayload({ transaction: preTransactions[i] });
-    } catch {
-      return {
-        valid: false,
-        reason: "invalid_exact_svm_payload_pre_transaction_decode_failed",
-      };
-    }
-
-    const preCompiled = getCompiledTransactionMessageDecoder().decode(preTx.messageBytes);
-    const preDecompiled = decompileTransactionMessage(preCompiled);
-    const preInstructions = preDecompiled.instructions ?? [];
-
-    if (preInstructions.length < 1 || preInstructions.length > 15) {
-      return {
-        valid: false,
-        reason: "invalid_exact_svm_payload_pre_transaction_instructions_length",
-      };
-    }
-
-    for (const preIx of preInstructions) {
-      if (!allowedPrograms.has(preIx.programAddress.toString())) {
-        return {
-          valid: false,
-          reason: "invalid_exact_svm_payload_pre_transaction_unknown_program",
-        };
-      }
-    }
-  }
-
-  return { valid: true };
-}
-
-/**
  * Full Light Token transaction verification.
  * Called by the facilitator when Light Token instructions are detected.
  *
  * @param instructions - Decompiled main transaction instructions
- * @param payload - The SVM payload (may include preTransactions)
+ * @param payload - The SVM payload
  * @param requirements - Payment requirements
  * @param signer - Facilitator signer
  * @param signerAddresses - Facilitator's managed addresses as strings
@@ -260,21 +205,6 @@ export async function validateLightTokenTransaction(
     }
   }
 
-  // SECURITY: Reject preTransactions for non-Light-Token transfers
-  // (This function is only called when Light Token is detected, but verify anyway)
-
-  // Validate pre-transactions structure
-  if (payload.preTransactions && payload.preTransactions.length > 0) {
-    const preValidation = validatePreTransactions(payload.preTransactions);
-    if (!preValidation.valid) {
-      return {
-        isValid: false,
-        invalidReason: preValidation.reason ?? "invalid_exact_svm_payload_pre_transaction_failed",
-        payer,
-      };
-    }
-  }
-
   // Sign and simulate main transaction
   try {
     const feePayer = requirements.extra!.feePayer as Address;
@@ -303,10 +233,9 @@ export async function validateLightTokenTransaction(
 
 /**
  * Settle a Light Token transaction.
- * Sends pre-transactions sequentially, then the main transaction.
  * Uses its own RPC client for skipPreflight on sends.
  *
- * @param payload - The SVM payload with preTransactions
+ * @param payload - The SVM payload
  * @param requirements - Payment requirements
  * @param signer - Facilitator signer
  * @param payer - The verified payer address
@@ -324,51 +253,6 @@ export async function settleLightTokenTransaction(
   const rpc = createRpcClient(network as `${string}:${string}`);
 
   try {
-    // Send pre-transactions sequentially
-    if (payload.preTransactions && payload.preTransactions.length > 0) {
-      for (let i = 0; i < payload.preTransactions.length; i++) {
-        const signedPreTx = await signer.signTransaction(
-          payload.preTransactions[i],
-          feePayer,
-          network,
-        );
-
-        const preTxSignature = await rpc
-          .sendTransaction(signedPreTx as never, {
-            encoding: "base64",
-            skipPreflight: true,
-          })
-          .send();
-
-        // Poll for confirmation
-        let confirmed = false;
-        let attempts = 0;
-        while (!confirmed && attempts < 30) {
-          const status = await rpc.getSignatureStatuses([preTxSignature as never]).send();
-          if (
-            status.value[0]?.confirmationStatus === "confirmed" ||
-            status.value[0]?.confirmationStatus === "finalized"
-          ) {
-            confirmed = true;
-            break;
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          attempts++;
-        }
-
-        if (!confirmed) {
-          return {
-            success: false,
-            errorReason: "light_token_pre_transaction_failed",
-            errorMessage: `Pre-transaction ${i + 1}/${payload.preTransactions.length} confirmation timeout`,
-            transaction: "",
-            network,
-            payer,
-          };
-        }
-      }
-    }
-
     // Send main transaction
     const fullySignedTransaction = await signer.signTransaction(
       payload.transaction,
